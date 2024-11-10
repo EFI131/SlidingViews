@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="GridElementLayoutParams">
+        <attr name="row" format="integer"/>
+        <attr name="col" format="integer"/>
+    </declare-styleable>
+    <declare-styleable name="GridLayoutParams">
+        <attr name="numRows" format="integer"/>
+        <attr name="numColumns" format="integer"/>
+    </declare-styleable>
+</resources>
