@@ -7,6 +7,7 @@ import android.Manifest.permission.READ_MEDIA_VIDEO
 import android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
 import android.app.Activity
 import android.content.ClipData
+import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -25,15 +26,16 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.size
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+
 
 class PuzzleSelectionActivity : AppCompatActivity() {
     companion object {
         const val TAG: String = "PuzzleSelectionActivity"
     }
 
-    private var puzzle: Puzzle? = null
     private lateinit var adapter: PuzzleAdapter
     private lateinit var resourcePuzzles: MutableList<Puzzle>
 
@@ -110,7 +112,6 @@ class PuzzleSelectionActivity : AppCompatActivity() {
     }
 
 
-
     private val getImage: ActivityResultLauncher<Intent> = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()){ activityResult: ActivityResult? ->
         if (activityResult?.resultCode != Activity.RESULT_OK|| activityResult.data == null){
@@ -183,53 +184,29 @@ class PuzzleSelectionActivity : AppCompatActivity() {
         val puzzleDifficultyDialog = LayoutInflater.from(this).inflate(R.layout.puzzle_difficulty_dialog, null)
         val boardSizeRadioGroup = puzzleDifficultyDialog.findViewById<RadioGroup>(R.id.rg_size)
         val boardDifficultyGroup = puzzleDifficultyDialog.findViewById<RadioGroup>(R.id.rg_difficulty)
-        showAlertDialog( "Create your own memory board", puzzleDifficultyDialog, View.OnClickListener {
-            puzzle.size = when ( boardSizeRadioGroup.checkedRadioButtonId ){
-                R.id.rb_3by3 -> {
-                    BoardSize.SMALL
-                }
-                R.id.rb_4by4 -> {
-                    BoardSize.MEDIUM
-                }
-                R.id.rb_5by5 -> {
-                    BoardSize.LARGE
-                }
+        showAlertDialog( "Create your own memory board", puzzleDifficultyDialog, DialogInterface.OnClickListener { dialog, which ->
+            puzzle.size = when (boardSizeRadioGroup.checkedRadioButtonId){
+                R.id.rb_3by3 -> BoardSize.SMALL
+                R.id.rb_4by4 -> BoardSize.MEDIUM
+                R.id.rb_5by5 -> BoardSize.LARGE
+                else -> BoardSize.MEDIUM
+            }
+            puzzle.difficulty = Puzzle.Difficulty.HARD
+            var resultIntent = Intent().apply { putExtra("selected_puzzle", puzzle) }
+            setResult(RESULT_OK,resultIntent)
+            finish()
+        })
 
-                else -> BoardSize.SMALL
-            }
 
-            puzzle.difficulty = when ( boardDifficultyGroup.checkedRadioButtonId ){
-                R.id.rb_easy -> {
-                    Puzzle.Difficulty.EASY
-            }
-                R.id.rb_medium -> {
-                Puzzle.Difficulty.MEDIUM
-            }
-                R.id.rb_hard -> {
-                Puzzle.Difficulty.HARD
-            }
-
-                else -> Puzzle.Difficulty.EASY
-            }
-        } )
-
-        this.puzzle = puzzle
     }
 
-    private fun showAlertDialog(title: String, view: View?, positiveButtonClickListener: View.OnClickListener) {
+
+    private fun showAlertDialog(title: String, view: View?, positiveButtonClickListener: DialogInterface.OnClickListener) {
         AlertDialog.Builder(this)
             .setTitle(title)
             .setView(view)
             .setNegativeButton("Cancel", null)
-            .setPositiveButton("OK") { _, _ ->
-                val resultIntent = Intent().apply {
-                    putExtra("selected_puzzle", puzzle) // Puzzle now implements Serializable
-                }
-
-                setResult(Activity.RESULT_OK, resultIntent)
-                finish()
-            }.show()
-
+            .setPositiveButton("Ok", positiveButtonClickListener).show()
     }
 
 }

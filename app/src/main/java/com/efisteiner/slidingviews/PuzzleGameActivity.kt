@@ -9,6 +9,7 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -99,13 +100,26 @@ class PuzzleGameActivity : AppCompatActivity(),DraggableGridLayout.InteractionLi
     }
 
     private fun showError(message: String) {
-
+        Log.i(TAG, "showError: $message")
     }
 
     private fun startGameWithPuzzle(puzzle: Puzzle) {
+        Log.i(TAG, "startGameWithPuzzle: ${puzzle.size}")
+        val (numRows, numCols) = when (puzzle.size){
+            BoardSize.SMALL -> {
+                Pair(3,3)
+            }
+            BoardSize.MEDIUM -> {
+                Pair(4,4)
+            }
+            BoardSize.LARGE -> {
+                Pair(5,5)
+            }
 
+            else ->Pair(3,3)
+        }
         // create and populate grid
-        gridLayout = DraggableGridLayout(this, 3,3)
+        gridLayout = DraggableGridLayout(this, numRows, numCols)
         gridLayout.id = View.generateViewId()
 
         // Set initial layout params with 0dp width or height for constraint-based sizing
@@ -115,8 +129,6 @@ class PuzzleGameActivity : AppCompatActivity(),DraggableGridLayout.InteractionLi
         val main:ConstraintLayout = findViewById<ConstraintLayout>(R.id.main)
         main.addView(gridLayout)
 
-        // Grid's ratio
-        val ratio = "1:1"
         // ConstraintSet
         val constraintSet = ConstraintSet()
         constraintSet.clone(main)
@@ -125,20 +137,23 @@ class PuzzleGameActivity : AppCompatActivity(),DraggableGridLayout.InteractionLi
         constraintSet.connect(gridLayout.id, ConstraintSet.START, main.id, ConstraintSet.START)
         constraintSet.connect(gridLayout.id, ConstraintSet.END, main.id, ConstraintSet.END)
         constraintSet.connect(gridLayout.id, ConstraintSet.TOP, main.id, ConstraintSet.TOP)
-        constraintSet.connect(gridLayout.id, ConstraintSet.BOTTOM, main.id, ConstraintSet.BOTTOM)
+//        constraintSet.connect(gridLayout.id, ConstraintSet.BOTTOM, main.id, ConstraintSet.BOTTOM)
 
 
+        bitmap = BitmapUtils.getBitmap(this, Uri.parse(puzzle.imageUriString))
 
-        constraintSet.setDimensionRatio(gridLayout.id, ratio)
+
+        constraintSet.setDimensionRatio(gridLayout.id, "H,${bitmap.width.toFloat() / bitmap.height.toFloat()}")
         constraintSet.applyTo(main)
         //val gridLayout:DraggableGridLayout = findViewById<DraggableGridLayout>(R.id.gridLayout)
-        model = SlidingPuzzleGame(gridLayout.numRows, gridLayout.numColumns)
+        model = SlidingPuzzleGame(numRows, numCols)
 
         // get puzzle bimap from uri and only then do
-        bitmap = BitmapUtils.getBitmap(this, Uri.parse(puzzle.imageUriString))
+
+
         // Use a coroutine to split the bitmap in the background
         lifecycleScope.launch(Dispatchers.IO) {
-            tiles = splitBitmap(bitmap, gridLayout.numRows, gridLayout.numColumns)
+            tiles = BitmapUtils.splitBitmap(bitmap, numRows, numCols)
 
             withContext(Dispatchers.Main) {
                 populateGrid()
@@ -148,48 +163,8 @@ class PuzzleGameActivity : AppCompatActivity(),DraggableGridLayout.InteractionLi
         gridLayout.interactionListener = this
     }
 
-    private fun splitBitmap(bitmap: Bitmap, rows: Int, columns: Int): List<Bitmap> {
-        val bmpWidth = bitmap.width
-        val bmpHeight = bitmap.height
 
-        val tileWidth = bmpWidth / columns
-        val tileHeight = bmpHeight / rows
 
-        val tileWidthRemainder = bmpWidth % columns
-        val tileHeightRemainder = bmpHeight % rows
-
-        val tiles = mutableListOf<Bitmap>()
-
-        for (row in 0 ..< rows) {
-            for (col in 0 ..< columns) {
-                val x = col * tileWidth
-                val y = row * tileHeight
-
-                var currentTileWidth = tileWidth
-                var currentTileHeight = tileHeight
-
-                // Adjust the width for last column
-                if (col == columns - 1){
-                    currentTileWidth += tileWidthRemainder
-                }
-
-                if ( row == rows -1) {
-                    currentTileHeight += tileHeightRemainder
-                }
-
-                val tile = Bitmap.createBitmap(
-                    bitmap,
-                    x,
-                    y,
-                    currentTileWidth,
-                    currentTileHeight
-                )
-
-                tiles.add(tile)
-            }
-        }
-        return tiles
-    }
 
     private fun populateGrid() {
         // grid view population w' ready data set

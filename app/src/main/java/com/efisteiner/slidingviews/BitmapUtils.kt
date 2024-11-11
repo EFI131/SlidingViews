@@ -7,7 +7,10 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
+import com.efisteiner.slidingviews.PuzzleGameActivity.Companion
 import java.io.ByteArrayOutputStream
+import kotlin.math.abs
+import kotlin.math.max
 
 class BitmapUtils {
     companion object {
@@ -29,12 +32,63 @@ class BitmapUtils {
             } else {
                 MediaStore.Images.Media.getBitmap(context.contentResolver, photoUri)
             }
-            Log.i(TAG, "getImageByteArray: Original width ${originalBitmap.width} and height ${originalBitmap.height}")
-            val scaledBitmap = scaleToFitHeight(originalBitmap, 250)
-            Log.i(TAG, "getImageByteArray: Scaled width ${originalBitmap.width} and height ${originalBitmap.height}")
-            val byteOutputStream = ByteArrayOutputStream()
-            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 60, byteOutputStream)
-            return scaledBitmap
+            return originalBitmap
+//            Log.i(TAG, "getImageByteArray: Original width ${originalBitmap.width} and height ${originalBitmap.height}")
+//            val scaledBitmap = scaleToFitHeight(originalBitmap, 250)
+//            Log.i(TAG, "getImageByteArray: Scaled width ${originalBitmap.width} and height ${originalBitmap.height}")
+//            val byteOutputStream = ByteArrayOutputStream()
+//            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 60, byteOutputStream)
+//            return scaledBitmap
         }
+
+        fun splitBitmap(bitmap: Bitmap, rows: Int, columns: Int): List<Bitmap> {
+            val bmpWidth = bitmap.width
+            val bmpHeight = bitmap.height
+
+            val tiles = mutableListOf<Bitmap>()
+
+            // Calculate the width of each tile and distribute any remainder
+            val tileWidths = IntArray(columns) { bmpWidth / columns }
+            var widthRemainder = bmpWidth % columns
+            for (i in 0 until widthRemainder) {
+                tileWidths[i] += 1
+            }
+
+            // Calculate the height of each tile and distribute any remainder
+            val tileHeights = IntArray(rows) { bmpHeight / rows }
+            var heightRemainder = bmpHeight % rows
+            for (i in 0 until heightRemainder) {
+                tileHeights[i] += 1
+            }
+
+            // Now create the tiles using the calculated widths and heights
+            var y = 0
+            for (row in 0 until rows) {
+                var x = 0
+                for (col in 0 until columns) {
+                    val tileWidth = tileWidths[col]
+                    val tileHeight = tileHeights[row]
+
+                    // Ensure the tile dimensions are within the bitmap bounds
+                    if (x + tileWidth > bmpWidth) {
+                        tileWidths[col] = bmpWidth - x
+                    }
+                    if (y + tileHeight > bmpHeight) {
+                        tileHeights[row] = bmpHeight - y
+                    }
+
+                    val tile = Bitmap.createBitmap(bitmap, x, y, tileWidths[col], tileHeights[row])
+                    tiles.add(tile)
+
+                    x += tileWidths[col] // Move to the next tile position horizontally
+                }
+                y += tileHeights[row] // Move to the next tile position vertically
+            }
+
+            return tiles
+        }
+
+
+
     }
 }

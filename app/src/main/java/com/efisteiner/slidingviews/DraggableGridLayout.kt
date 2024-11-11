@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.customview.widget.ViewDragHelper
 import kotlin.math.log
+import kotlin.math.max
 
 /**
  * A grid layout that acts both as an input device and a game display
@@ -39,7 +40,6 @@ class DraggableGridLayout @JvmOverloads constructor(
             field = value
         }
     var interactionListener: InteractionListener? = null
-
     var numRows: Int
     var numColumns: Int
 
@@ -52,6 +52,7 @@ class DraggableGridLayout @JvmOverloads constructor(
 
     // Primary constructor block
     init {
+        Log.i(TAG, ": init is called any ways?")
         context.theme.obtainStyledAttributes(
             attrs,
             R.styleable.GridLayoutParams,
@@ -137,12 +138,15 @@ class DraggableGridLayout @JvmOverloads constructor(
         val cellWidth = totalWidth / numColumns
         val cellHeight = totalHeight / numRows
 
+        var tileWidthRemainder = totalWidth % numColumns
+        var tileHeightRemainder = totalHeight % numRows
+
         val cellWidthSpec = MeasureSpec.makeMeasureSpec(cellWidth, MeasureSpec.EXACTLY)
         val cellHeightSpec = MeasureSpec.makeMeasureSpec(cellHeight, MeasureSpec.EXACTLY)
 
         for (i in 0 until childCount) {
             val child = getChildAt(i)
-            child.measure(cellWidthSpec, cellHeightSpec)
+            child.measure(cellWidthSpec.plus(1), cellHeightSpec.plus(1))
         }
 
         // we are asking for full available real estate
