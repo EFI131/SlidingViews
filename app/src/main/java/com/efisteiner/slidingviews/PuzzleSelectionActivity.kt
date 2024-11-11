@@ -11,7 +11,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Parcelable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
@@ -32,9 +31,9 @@ import androidx.recyclerview.widget.RecyclerView
 class PuzzleSelectionActivity : AppCompatActivity() {
     companion object {
         const val TAG: String = "PuzzleSelectionActivity"
-        const val EXTRA_PUZZLE:String = "EXTRA_PUZZLE"
     }
 
+    private var puzzle: Puzzle? = null
     private lateinit var adapter: PuzzleAdapter
     private lateinit var resourcePuzzles: MutableList<Puzzle>
 
@@ -106,14 +105,8 @@ class PuzzleSelectionActivity : AppCompatActivity() {
 
     private fun openPuzzle(puzzle: Puzzle) {
         // Handle the puzzle selection
-        showCreationDialog()
-        val resultIntent = Intent().apply {
-            putExtra("selected_puzzle", puzzle) // Puzzle now implements Serializable
-        }
+        puzzleConfigurationDialog(puzzle)
 
-        setResult(Activity.RESULT_OK, resultIntent)
-
-        //finish()
     }
 
 
@@ -163,7 +156,7 @@ class PuzzleSelectionActivity : AppCompatActivity() {
         // Handle permission requests results
         // See the permission example in the Android platform samples: https://github.com/android/platform-samples
         if(results.containsValue(false)) {
-            Log.d("PERMISSIONS", "At least one of the permissions was not granted, launching again...");
+            Log.d("PERMISSIONS", "At least one of the permissions was not granted, launching again...")
         } else {
             launchIntentForPhotos()
         }
@@ -186,30 +179,41 @@ class PuzzleSelectionActivity : AppCompatActivity() {
         }
     }
 
-    private fun showCreationDialog() {
+    private fun puzzleConfigurationDialog(puzzle: Puzzle) {
         val puzzleDifficultyDialog = LayoutInflater.from(this).inflate(R.layout.puzzle_difficulty_dialog, null)
         val boardSizeRadioGroup = puzzleDifficultyDialog.findViewById<RadioGroup>(R.id.rg_size)
-
+        val boardDifficultyGroup = puzzleDifficultyDialog.findViewById<RadioGroup>(R.id.rg_difficulty)
         showAlertDialog( "Create your own memory board", puzzleDifficultyDialog, View.OnClickListener {
-            val desiredBoardSize: BoardSize = when ( boardSizeRadioGroup.checkedRadioButtonId ){
-                R.id.rb_easy -> {
+            puzzle.size = when ( boardSizeRadioGroup.checkedRadioButtonId ){
+                R.id.rb_3by3 -> {
                     BoardSize.SMALL
                 }
-                R.id.rb_medium -> {
+                R.id.rb_4by4 -> {
                     BoardSize.MEDIUM
                 }
-                R.id.rb_hard -> {
+                R.id.rb_5by5 -> {
                     BoardSize.LARGE
                 }
 
                 else -> BoardSize.SMALL
             }
-            Log.i(TAG, "showCreationDialog: $desiredBoardSize")
-            // Navigate to board creation activity
-            val intent = Intent(this, PuzzleGameActivity::class.java)
-            intent.putExtra(EXTRA_PUZZLE, desiredBoardSize as Parcelable)
 
+            puzzle.difficulty = when ( boardDifficultyGroup.checkedRadioButtonId ){
+                R.id.rb_easy -> {
+                    Puzzle.Difficulty.EASY
+            }
+                R.id.rb_medium -> {
+                Puzzle.Difficulty.MEDIUM
+            }
+                R.id.rb_hard -> {
+                Puzzle.Difficulty.HARD
+            }
+
+                else -> Puzzle.Difficulty.EASY
+            }
         } )
+
+        this.puzzle = puzzle
     }
 
     private fun showAlertDialog(title: String, view: View?, positiveButtonClickListener: View.OnClickListener) {
@@ -218,9 +222,16 @@ class PuzzleSelectionActivity : AppCompatActivity() {
             .setView(view)
             .setNegativeButton("Cancel", null)
             .setPositiveButton("OK") { _, _ ->
-                positiveButtonClickListener.onClick(null)
+                val resultIntent = Intent().apply {
+                    putExtra("selected_puzzle", puzzle) // Puzzle now implements Serializable
+                }
+
+                setResult(Activity.RESULT_OK, resultIntent)
+                finish()
             }.show()
 
     }
 
 }
+
+

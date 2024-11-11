@@ -33,19 +33,19 @@
             android:id="@+id/rb_3by3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="RadioButton" />
+            android:text="3X3" />
 
         <RadioButton
             android:id="@+id/rb_4by4"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="RadioButton" />
+            android:text="4X4" />
 
         <RadioButton
-            android:id="@+id/rb5by5"
+            android:id="@+id/rb_5by5"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="RadioButton" />
+            android:text="5X5" />
     </RadioGroup>
 
     <RadioGroup
@@ -62,19 +62,19 @@
             android:id="@+id/rb_easy"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="RadioButton" />
+            android:text="EASY" />
 
         <RadioButton
             android:id="@+id/rb_medium"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="RadioButton" />
+            android:text="MEDIUM" />
 
         <RadioButton
             android:id="@+id/rb_hard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="RadioButton" />
+            android:text="HARD" />
     </RadioGroup>
 
 
