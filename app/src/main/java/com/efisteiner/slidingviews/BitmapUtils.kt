@@ -6,11 +6,6 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import android.util.Log
-import com.efisteiner.slidingviews.PuzzleGameActivity.Companion
-import java.io.ByteArrayOutputStream
-import kotlin.math.abs
-import kotlin.math.max
 
 class BitmapUtils {
     companion object {
@@ -41,48 +36,30 @@ class BitmapUtils {
 //            return scaledBitmap
         }
 
+        /**
+         * split bitmap splits the provided bitmap to rows * cols pieces
+         */
         fun splitBitmap(bitmap: Bitmap, rows: Int, columns: Int): List<Bitmap> {
             val bmpWidth = bitmap.width
             val bmpHeight = bitmap.height
 
             val tiles = mutableListOf<Bitmap>()
 
-            // Calculate the width of each tile and distribute any remainder
-            val tileWidths = IntArray(columns) { bmpWidth / columns }
-            var widthRemainder = bmpWidth % columns
-            for (i in 0 until widthRemainder) {
-                tileWidths[i] += 1
-            }
 
-            // Calculate the height of each tile and distribute any remainder
-            val tileHeights = IntArray(rows) { bmpHeight / rows }
-            var heightRemainder = bmpHeight % rows
-            for (i in 0 until heightRemainder) {
-                tileHeights[i] += 1
-            }
+            val tileWidth = bmpWidth / columns
+            val tileHeight = bmpHeight / rows
+            val widthRemainder = bmpWidth % columns
+            val heightRemainder = bmpHeight % rows
 
-            // Now create the tiles using the calculated widths and heights
-            var y = 0
-            for (row in 0 until rows) {
-                var x = 0
-                for (col in 0 until columns) {
-                    val tileWidth = tileWidths[col]
-                    val tileHeight = tileHeights[row]
-
-                    // Ensure the tile dimensions are within the bitmap bounds
-                    if (x + tileWidth > bmpWidth) {
-                        tileWidths[col] = bmpWidth - x
-                    }
-                    if (y + tileHeight > bmpHeight) {
-                        tileHeights[row] = bmpHeight - y
-                    }
-
-                    val tile = Bitmap.createBitmap(bitmap, x, y, tileWidths[col], tileHeights[row])
+            var y = 0 + heightRemainder/2
+            for (row in 0 until rows){
+                var x = 0 + widthRemainder/2
+                for ( col in 0 until columns ){
+                    val tile = Bitmap.createBitmap(bitmap, x, y, tileWidth, tileHeight)
                     tiles.add(tile)
-
-                    x += tileWidths[col] // Move to the next tile position horizontally
+                    x += tileWidth
                 }
-                y += tileHeights[row] // Move to the next tile position vertically
+                y += tileHeight
             }
 
             return tiles

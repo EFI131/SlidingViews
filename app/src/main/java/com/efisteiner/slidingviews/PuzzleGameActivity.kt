@@ -23,6 +23,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.setPadding
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -115,8 +116,6 @@ class PuzzleGameActivity : AppCompatActivity(),DraggableGridLayout.InteractionLi
             BoardSize.LARGE -> {
                 Pair(5,5)
             }
-
-            else ->Pair(3,3)
         }
         // create and populate grid
         gridLayout = DraggableGridLayout(this, numRows, numCols)
@@ -137,15 +136,15 @@ class PuzzleGameActivity : AppCompatActivity(),DraggableGridLayout.InteractionLi
         constraintSet.connect(gridLayout.id, ConstraintSet.START, main.id, ConstraintSet.START)
         constraintSet.connect(gridLayout.id, ConstraintSet.END, main.id, ConstraintSet.END)
         constraintSet.connect(gridLayout.id, ConstraintSet.TOP, main.id, ConstraintSet.TOP)
-//        constraintSet.connect(gridLayout.id, ConstraintSet.BOTTOM, main.id, ConstraintSet.BOTTOM)
+        constraintSet.connect(gridLayout.id, ConstraintSet.BOTTOM, main.id, ConstraintSet.BOTTOM)
+        gridLayout.setPadding(8)
 
 
         bitmap = BitmapUtils.getBitmap(this, Uri.parse(puzzle.imageUriString))
 
 
-        constraintSet.setDimensionRatio(gridLayout.id, "H,${bitmap.width.toFloat() / bitmap.height.toFloat()}")
+        constraintSet.setDimensionRatio(gridLayout.id, "H,${bitmap.height.toFloat() / bitmap.width.toFloat()}")
         constraintSet.applyTo(main)
-        //val gridLayout:DraggableGridLayout = findViewById<DraggableGridLayout>(R.id.gridLayout)
         model = SlidingPuzzleGame(numRows, numCols)
 
         // get puzzle bimap from uri and only then do
